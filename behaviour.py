@@ -38,3 +38,10 @@ class Pet:
         current_hour = datetime.now().hour
         if current_hour == demand_hour or self.difficulty > 5:
             self.demand_attention()
+    def update_difficulty(self):
+        if self.day <= 8:
+            self.difficulty = 1 + 0.1 * self.day  # linear increase
+        else:
+            self.difficulty = 1 * (2 ** (self.day - 8))  # doubles daily
+
+        print(f"Day {self.day}: Difficulty now {self.difficulty:.2f}")
