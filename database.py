@@ -25,19 +25,24 @@ def init_db():
     """)
 
     # Pets
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS pets (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        species TEXT DEFAULT 'VirtualPet',
-        hunger REAL DEFAULT 50,
-        happiness REAL DEFAULT 50,
-        energy REAL DEFAULT 50,
-        last_updated TEXT,
-        user_id INTEGER,
-        FOREIGN KEY (user_id) REFERENCES users(id)
-    )
-    """)
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS pets (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    species TEXT DEFAULT 'VirtualPet',
+    hunger REAL DEFAULT 50,
+    happiness REAL DEFAULT 50,
+    energy REAL DEFAULT 50,
+    health REAL DEFAULT 100,
+    neglect_count INTEGER DEFAULT 0,
+    self_destructive_index REAL DEFAULT 1.0,
+    last_updated TEXT,
+    user_id INTEGER,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+)
+""")
+
+   
 
     # Pet History
     cursor.execute("""
@@ -69,24 +74,37 @@ def add_pet(name, species="VirtualPet", user_id=1):
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("""
-        INSERT INTO pets (name, species, hunger, happiness, energy, last_updated, user_id)
-        VALUES (?, ?, 50, 50, 50, ?, ?)
+        INSERT INTO pets (name, species, hunger, happiness, energy, health, neglect_count, self_destructive_index, last_updated, user_id)
+        VALUES (?, ?, 50, 50, 50, 100, 0, 1.0, ?, ?)
     """, (name, species, datetime.now().isoformat(), user_id))
     conn.commit()
     pet_id = cursor.lastrowid
     conn.close()
     return pet_id
 
+
+
 def update_pet(pet_id, state):
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("""
         UPDATE pets
-        SET hunger=?, happiness=?, energy=?, last_updated=?
+        SET hunger=?, happiness=?, energy=?, health=?, neglect_count=?, self_destructive_index=?, last_updated=?
         WHERE id=?
-    """, (state["hunger"], state["happiness"], state["energy"], datetime.now().isoformat(), pet_id))
+    """, (
+        state["hunger"], 
+        state["happiness"], 
+        state["energy"], 
+        state["health"], 
+        state["neglect_count"], 
+        state["self_destructive_index"], 
+        datetime.now().isoformat(), 
+        pet_id
+    ))
     conn.commit()
     conn.close()
+
+
 
 def save_pet_action(pet_id, action, description=""):
     conn = get_connection()
@@ -97,3 +115,4 @@ def save_pet_action(pet_id, action, description=""):
     """, (action, description, datetime.now().isoformat(), pet_id))
     conn.commit()
     conn.close()
+
