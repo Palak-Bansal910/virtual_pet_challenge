@@ -1,3 +1,4 @@
+from Background_work import update_pet_status
 from flask import Flask, render_template, request, jsonify
 from game_logic import VirtualPetML
 import database
@@ -27,9 +28,16 @@ behaviour_pet.interaction_history = []
 # Routes
 # -------------------------
 @app.route("/")
+@app.route("/")
 def home():
+    # Get current pet status (from VirtualPetML)
     status = pet.get_status()
-    return render_template("index.html", pet=status)
+
+    # Apply background logic (decay + neglect system)
+    updated_pet = update_pet_status(pet)
+
+    return render_template("index.html", pet=updated_pet)
+
 
 @app.route("/interact", methods=["POST"])
 def interact():
