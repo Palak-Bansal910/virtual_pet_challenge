@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Virtual Pet Game</title>
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; margin: 20px; }
+    h1 { color: #4CAF50; }
+    .stats, .actions { margin: 20px auto; padding: 15px; border: 1px solid #ddd; width: 300px; border-radius: 10px; }
+    button { margin: 5px; padding: 10px 20px; font-size: 16px; cursor: pointer; }
+    pre { text-align: left; background: #f8f8f8; padding: 10px; border-radius: 8px; }
+  </style>
+</head>
+<body>
+  <h1>🐾 Virtual Pet Game</h1>
+  <h2>Meet {{ pet.name }}</h2>
+
+  <!-- Pet Stats -->
+  <div class="stats">
+    <h3>Pet Status</h3>
+    <p><strong>Hunger:</strong> {{ pet.hunger }}</p>
+    <p><strong>Happiness:</strong> {{ pet.happiness }}</p>
+    <p><strong>Energy:</strong> {{ pet.energy }}</p>
+    <p><strong>Mood:</strong> {{ pet.mood }}</p>
+    <p><strong>Difficulty:</strong> <span id="difficulty">1</span></p>
+    <p><strong>Attention:</strong> <span id="attention">Calm</span></p>
+  </div>
+
+  <!-- Pet Actions -->
+  <div class="actions">
+    <h3>Actions</h3>
+    <button onclick="interact('feed')">🍎 Feed</button>
+    <button onclick="interact('play')">🎾 Play</button>
+    <button onclick="interact('sleep')">💤 Sleep</button>
+    <button onclick="checkAttention()">🔔 Check Attention</button>
+    <button onclick="trainModel()">🧠 Train Behaviour</button>
+  </div>
+
+  <!-- Output -->
+  <pre id="output">Waiting for interaction...</pre>
+
+  <script>
+    async function interact(action) {
+      let res = await fetch("/interact", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({action})
+      });
+      let data = await res.json();
+      document.getElementById("output").innerText =
+        "Message: " + data.message + "\n" +
+        "State: " + JSON.stringify(data.state, null, 2) + "\n" +
+        "Difficulty: " + data.difficulty;
+
+      // Update live values
+      document.getElementById("difficulty").innerText = data.difficulty;
+      document.getElementById("attention").innerText = "Calm"; // reset after interaction
+    }
+
+    async function checkAttention() {
+      let res = await fetch("/attention");
+      let data = await res.json();
+      document.getElementById("attention").innerText = data.attention;
+      document.getElementById("output").innerText =
+        "Attention Status: " + data.attention;
+    }
+
+    async function trainModel() {
+      let res = await fetch("/train");
+      let data = await res.json();
+      document.getElementById("output").innerText =
+        JSON.stringify(data, null, 2);
+    }
+  </script>
+</body>
+</html>
