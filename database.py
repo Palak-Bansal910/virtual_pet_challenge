@@ -25,8 +25,8 @@ def init_db():
     """)
 
     # Pets
-cursor.execute("""
-CREATE TABLE IF NOT EXISTS pets (
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS pets (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     species TEXT DEFAULT 'VirtualPet',
@@ -39,8 +39,8 @@ CREATE TABLE IF NOT EXISTS pets (
     last_updated TEXT,
     user_id INTEGER,
     FOREIGN KEY (user_id) REFERENCES users(id)
-)
-""")
+    )
+    """)
 
    
 
