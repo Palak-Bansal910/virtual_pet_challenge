@@ -56,8 +56,10 @@ class VirtualPetML:
             "hunger": self.hunger,
             "happiness": self.happiness,
             "energy": self.energy,
-            "mood": mood
+            "mood": mood,
+            "last_updated": self.last_update.isoformat()  # <-- Added this
         }
+
 
     # ---------------- ML Mood Prediction ----------------
     def predict_mood(self):
