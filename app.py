@@ -6,9 +6,6 @@ from behaviour import Pet
 from datetime import datetime
 import random
 
-# -------------------------
-# Flask Setup
-# -------------------------
 app = Flask(__name__)
 
 # -------------------------
@@ -16,6 +13,9 @@ app = Flask(__name__)
 # -------------------------
 database.init_db()
 pet_id = database.add_pet("Buddy")   # stored in DB
+if pet_id is None:   # fallback if pet couldn't be added
+    pet_id = 1
+
 pet = VirtualPetML(name="Buddy")     # game logic + ML mood
 behaviour_pet = Pet()                # behaviour system
 
@@ -28,22 +28,15 @@ behaviour_pet.interaction_history = []
 # Routes
 # -------------------------
 @app.route("/")
-@app.route("/")
 def home():
-    # Get current pet status (from VirtualPetML)
     status = pet.get_status()
-
-    # Apply background logic (decay + neglect system)
-    updated_pet = update_pet_status(pet)
-
+    updated_pet = update_pet_status(pet, pet_id)   # pass pet_id
     return render_template("index.html", pet=updated_pet)
-
 
 @app.route("/interact", methods=["POST"])
 def interact():
     action = request.json.get("action")
 
-    # Perform action
     if action == "feed":
         message = pet.feed_pet()
     elif action == "play":
@@ -53,17 +46,11 @@ def interact():
     else:
         message = "Unknown action."
 
-    # Update behaviour interaction history
     behaviour_pet.interaction_history.append(datetime.now().hour)
-
-    # Update difficulty daily (example: each interaction = 1 "day")
     behaviour_pet.update_difficulty()
     behaviour_pet.day += 1
 
-    # Get latest state
     state = pet.get_status()
-
-    # Update DB
     database.update_pet(pet_id, state)
     database.save_pet_action(pet_id, action, message)
 
@@ -75,7 +62,6 @@ def interact():
 
 @app.route("/attention", methods=["GET"])
 def attention():
-    """Simulate the pet demanding attention."""
     demand_hour = random.choice(range(24))
     current_hour = datetime.now().hour
     if current_hour == demand_hour or behaviour_pet.difficulty > 5:
@@ -86,14 +72,10 @@ def attention():
 
 @app.route("/train", methods=["GET"])
 def train_model():
-    """Trigger behaviour ML training."""
     unavailable = behaviour_pet.train_ml_model()
     if unavailable:
         return jsonify({"unavailable_hours": unavailable})
     return jsonify({"message": "Not enough interaction history to train model."})
 
-# -------------------------
-# Main
-# -------------------------
 if __name__ == "__main__":
     app.run(debug=True)
